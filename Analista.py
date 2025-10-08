@@ -8,10 +8,10 @@ from dotenv import load_dotenv
 
 # Carrega variáveis de ambiente
 load_dotenv()
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # Inicializa LLM
-llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", google_api_key=GOOGLE_API_KEY)
+llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", google_api_key=GEMINI_API_KEY)
 
 # Inicializa session state para o chat
 if "messages" not in st.session_state:
@@ -28,20 +28,13 @@ def analisar_dataset(df):
     resumo["Valores Nulos"] = df.isnull().sum().to_dict()
     resumo["Estatísticas"] = df.describe().to_dict()
 
-    # Gera o gráfico de valores ausentes
-    plt.figure(figsize=(8, 5))
-    sns.heatmap(df.isnull(), cbar=False, cmap='viridis')
-    chart_path = "charts/missing_values.png"
-    os.makedirs("charts", exist_ok=True)
-    plt.savefig(chart_path)
-    plt.close()
-
-    return resumo, chart_path
+    return resumo
 
 # Função para responder perguntas sobre o dataset
 def responder_pergunta(pergunta, dataset_info, df_sample):
     prompt = f"""
-    Você é um assistente especializado em análise de dados. O usuário carregou um dataset e fez a seguinte pergunta: "{pergunta}"
+    Você é um assistente especializado em análise de dados.
+    O usuário carregou um dataset e fez a seguinte pergunta: "{pergunta}"
 
     Informações sobre o dataset:
     {dataset_info}
@@ -69,15 +62,13 @@ with col1:
         st.subheader("Prévia dos Dados")
         st.write(df.head())
 
-        resumo, chart_path = analisar_dataset(df)
+        resumo = analisar_dataset(df)
         
         # Armazena informações do dataset no session state
         st.session_state.dataset_info = resumo
         
         st.subheader("Resumo Estatístico")
         st.json(resumo)
-
-        st.image(chart_path, caption="Mapa de valores ausentes")
 
 # Chatbot na sidebar
 with st.sidebar:
